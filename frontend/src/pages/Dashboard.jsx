@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://the-cookie-app.onrender.com';
 
 export default function Dashboard() {
   const [products, setProducts] = useState([]);

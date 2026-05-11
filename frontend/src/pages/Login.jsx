@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, LogIn, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://the-cookie-app.onrender.com';
 
 export default function Login() {
   const navigate = useNavigate();
