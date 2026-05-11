@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, UserPlus, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'onrender.com';
+
 export default function Signup() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +15,7 @@ export default function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', formData);
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, formData);
       if (response.data.success) {
         setIsSuccess(true);
         setTimeout(() => navigate('/login'), 2000);
@@ -35,6 +37,8 @@ export default function Signup() {
         <h2 className="text-2xl font-bold text-white mb-2">Create Account</h2>
         <p className="text-slate-400 text-sm mb-8">Enter details to register</p>
         
+        {errors.server && <p className="text-red-500 text-xs mb-4 font-bold uppercase">{errors.server}</p>}
+
         <form className="w-full space-y-4" onSubmit={handleSignup} autoComplete="off">
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -42,6 +46,7 @@ export default function Signup() {
               type="text" 
               placeholder="Username" 
               autoComplete="off"
+              value={formData.username}
               onChange={(e) => setFormData({...formData, username: e.target.value})}
               className="w-full pl-12 pr-4 py-3.5 bg-[#1a1a1c] border border-white/10 rounded-xl text-white outline-none focus:ring-1 focus:ring-[#3b5d8f]" 
             />
@@ -52,6 +57,7 @@ export default function Signup() {
               type={showPassword ? "text" : "password"} 
               placeholder="Password" 
               autoComplete="new-password"
+              value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
               className="w-full pl-12 pr-12 py-3.5 bg-[#1a1a1c] border border-white/10 rounded-xl text-white outline-none focus:ring-1 focus:ring-[#3b5d8f]" 
             />

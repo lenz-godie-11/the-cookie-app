@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, LogIn, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'onrender.com';
+
 export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +15,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, formData);
       if (response.data.success) {
         setIsSuccess(true);
         setTimeout(() => navigate('/dashboard'), 1500);
@@ -43,6 +45,7 @@ export default function Login() {
               type="text" 
               placeholder="Username" 
               autoComplete="off"
+              value={formData.username}
               onChange={(e) => setFormData({...formData, username: e.target.value})}
               className="w-full pl-12 pr-4 py-3.5 bg-[#1a1a1c] border border-white/10 rounded-xl text-white outline-none focus:ring-1 focus:ring-[#3b5d8f]" 
             />
@@ -53,6 +56,7 @@ export default function Login() {
               type={showPassword ? "text" : "password"} 
               placeholder="Password" 
               autoComplete="current-password"
+              value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
               className="w-full pl-12 pr-12 py-3.5 bg-[#1a1a1c] border border-white/10 rounded-xl text-white outline-none focus:ring-1 focus:ring-[#3b5d8f]" 
             />
