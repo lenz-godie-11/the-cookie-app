@@ -1,3 +1,4 @@
+// backend/routes/auth.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
@@ -5,19 +6,22 @@ const db = require('../database/db');
 
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword], (err) => {
-        if (err) return res.status(500).json({ message: "Registration failed" });
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [username, hashedPassword]);
         res.status(201).json({ success: true, message: "Registered!" });
-    });
+    } catch (err) {
+        res.status(500).json({ message: "Registration failed or user exists" });
+    }
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     const { username, password } = req.body;
+    try {
+        const result = await db.query("SELECT * FROM users WHERE username = $1", [username]);
+        const user = result.rows[0];
 
-    db.get("SELECT * FROM users WHERE username = ?", [username], async (err, user) => {
-        if (err || !user) return res.status(401).json({ message: "invalid credential" });
+        if (!user) return res.status(401).json({ message: "invalid credential" });
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
@@ -25,7 +29,9 @@ router.post('/login', (req, res) => {
         } else {
             res.status(401).json({ message: "invalid credential" });
         }
-    });
+    } catch (err) {
+        res.status(500).json({ message: "Server login error" });
+    }
 });
 
 module.exports = router;

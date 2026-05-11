@@ -1,51 +1,38 @@
+// backend/routes/cookie.js
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db'); 
-const multer = require('multer');
-const path = require('path');
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
-const upload = multer({ storage: storage });
-
-router.get('/stock', (req, res) => {
-    db.all("SELECT * FROM products", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+router.get('/stock', async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM products ORDER BY id ASC");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-router.post('/upload-product', upload.single('productImage'), (req, res) => {
-    const { name, count } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
-    db.run("INSERT INTO products (name, count, image_url) VALUES (?, ?, ?)", 
-        [name, count, imageUrl], 
-        (err) => {
-            if (err) return res.status(500).json({ message: "Upload failed" });
-            res.json({ success: true, message: `${name} added to inventory!` });
-        }
-    );
-});
-
-router.post('/consume/:id', (req, res) => {
+router.post('/consume/:id', async (req, res) => {
     const productId = req.params.id;
-    db.run("UPDATE products SET count = count - 1 WHERE id = ? AND count > 0", [productId], function(err) {
-        if (this.changes > 0) {
-            res.json({ success: true, message: "Item consumed!" });
-        } else {
-            res.status(400).json({ success: false, message: "Item out of stock!" });
-        }
-    });
+    try {
+        const result = await db.query(
+            "UPDATE products SET count = count - 1 WHERE id = $1 AND count > 0", 
+            [productId]
+        );
+        res.json({ success: true, message: "Item consumed!" });
+    } catch (err) {
+        res.status(400).json({ success: false, message: "Item out of stock!" });
+    }
 });
 
-router.post('/restock/:id', (req, res) => {
+router.post('/restock/:id', async (req, res) => {
     const productId = req.params.id;
-    db.run("UPDATE products SET count = 10 WHERE id = ?", [productId], (err) => {
-        if (err) return res.status(500).json({ success: false, message: "Restock failed" });
-        res.json({ success: true, message: "Item refilled!" });
-    });
+    try {
+        await db.query("UPDATE products SET count = 10 WHERE id = $1", [productId]);
+        res.json({ success: true, message: "Item is full!" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Failed to fill the item" });
+    }
 });
 
 module.exports = router;

@@ -1,24 +1,46 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+// backend/database/db.js
+const { Pool } = require('pg');
 
-const dbPath = path.resolve(__dirname, 'kitchen.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) return console.error(err.message);
-    console.log('Connected to kitchen Database at:', dbPath);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+const initializeDatabase = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
         name TEXT NOT NULL UNIQUE,
         count INTEGER DEFAULT 0,
         image_url TEXT
-    )`);
+      );
+    `);
 
     const items = ['cookies', 'teabags', 'coffee', 'mint ratomilk', 'salt'];
-    items.forEach(item => {
-        db.run("INSERT OR IGNORE INTO products (name, count) VALUES (?, 10)", [item]);
-    });
-});
+    for (const item of items) {
+      await pool.query(`
+        INSERT INTO products (name, count) 
+        VALUES ($1, 10) 
+        ON CONFLICT (name) DO NOTHING;
+      `, [item]);
+    }
+    console.log("PostgreSQL Tables initialized.");
+  } catch (err) {
+    console.error("Database initialization failed:", err);
+  }
+};
 
-module.exports = db;
+initializeDatabase();
+
+module.exports = pool;
