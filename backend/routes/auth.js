@@ -6,14 +6,25 @@ const db = require('../database/db');
 
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: "Missing credentials" });
+    }
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        await db.query("INSERT INTO users (username, password) VALUES ($1, $2)", [username, hashedPassword]);
+        
+        await db.query(
+            "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id", 
+            [username, hashedPassword]
+        );
+        
         res.status(201).json({ success: true, message: "Registered!" });
     } catch (err) {
-        res.status(500).json({ message: "Registration failed or user exists" });
+        res.status(500).json({ success: false, message: "Registration failed or user exists" });
     }
 });
+
 
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
