@@ -1,6 +1,4 @@
-
 const { Pool } = require('pg');
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -17,7 +15,6 @@ const initializeDatabase = async () => {
         password TEXT NOT NULL
       );
     `);
-
     await pool.query(`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
@@ -26,7 +23,15 @@ const initializeDatabase = async () => {
         image_url TEXT
       );
     `);
-
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL,
+        message TEXT NOT NULL,
+        room TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
     const items = ['cookies', 'teabags', 'coffee', 'mint ratomilk', 'salt'];
     for (const item of items) {
       await pool.query(`
@@ -42,5 +47,4 @@ const initializeDatabase = async () => {
 };
 
 initializeDatabase();
-
 module.exports = pool;
