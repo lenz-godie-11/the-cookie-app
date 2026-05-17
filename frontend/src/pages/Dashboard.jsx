@@ -54,11 +54,9 @@ export default function Dashboard() {
       formData.append('count', form.count);
       formData.append('family_id', familyId);
       if (image) formData.append('image', image);
-
       await axios.post(`${API_BASE_URL}/products/add`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-
       setShowModal(false);
       setForm({ name: '', description: '', count: 10 });
       setImage(null);
@@ -103,15 +101,17 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="bg-[#121214] border border-white/5 rounded-2xl p-4 mb-8 flex items-center justify-between gap-4">
-        <div className="overflow-hidden">
-          <p className="text-slate-400 text-xs mb-1">Your Family Invite Link</p>
-          <p className="text-slate-300 text-sm truncate max-w-xs">{inviteLink}</p>
+      {isAdmin && (
+        <div className="bg-[#121214] border border-white/5 rounded-2xl p-4 mb-8 flex items-center justify-between gap-4">
+          <div className="overflow-hidden">
+            <p className="text-slate-400 text-xs mb-1">Your Family Invite Link</p>
+            <p className="text-slate-300 text-sm truncate max-w-xs">{inviteLink}</p>
+          </div>
+          <button onClick={handleCopy} className="flex items-center gap-2 bg-[#3b5d8f] text-white px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+            {copied ? <><CheckCheck size={16} /> Copied!</> : <><Copy size={16} /> Copy Link</>}
+          </button>
         </div>
-        <button onClick={handleCopy} className="flex items-center gap-2 bg-[#3b5d8f] text-white px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
-          {copied ? <><CheckCheck size={16} /> Copied!</> : <><Copy size={16} /> Copy Link</>}
-        </button>
-      </div>
+      )}
 
       {error && <p className="text-red-500 font-bold mb-4">{error}</p>}
 
