@@ -20,6 +20,7 @@ export default function Login({ setUsername, setFamilyId }) {
         setIsSuccess(true);
         localStorage.setItem('username', response.data.username);
         localStorage.setItem('family_id', response.data.family_id);
+        localStorage.setItem('is_admin', response.data.is_admin);
         setUsername(response.data.username);
         setFamilyId(response.data.family_id);
         setTimeout(() => navigate('/dashboard'), 1500);

@@ -19,6 +19,7 @@ const initializeDatabase = async () => {
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         family_id TEXT REFERENCES families(family_id),
+        is_admin BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
