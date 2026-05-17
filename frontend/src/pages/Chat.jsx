@@ -8,21 +8,24 @@ const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://the-cookie-app.onren
 
 const socket = io(SOCKET_URL);
 
-export default function Chat({ username }) {
+export default function Chat({ username, familyId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
+  const room = `family_${familyId}`;
 
   useEffect(() => {
-    socket.emit('join_room', 'group');
-    axios.get(`${API_BASE_URL}/messages/group`).then(res => setMessages(res.data));
+    if (!familyId) return;
+    socket.emit('join_room', room);
+    axios.get(`${API_BASE_URL}/messages/group?room=${room}`)
+      .then(res => setMessages(res.data));
 
     socket.on('receive_message', (data) => {
       setMessages(prev => [...prev, data]);
     });
 
     return () => socket.off('receive_message');
-  }, []);
+  }, [familyId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,7 +33,7 @@ export default function Chat({ username }) {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const data = { username, message: input, room: 'group' };
+    const data = { username, message: input, room };
     socket.emit('send_message', data);
     await axios.post(`${API_BASE_URL}/messages/save`, data);
     setInput('');
@@ -38,7 +41,7 @@ export default function Chat({ username }) {
 
   return (
     <div className="flex flex-col h-[80vh] max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-bold text-[#3b5d8f] mb-4">Group Chat</h2>
+      <h2 className="text-2xl font-bold text-[#3b5d8f] mb-4">Family Chat</h2>
       <div className="flex-1 overflow-y-auto bg-[#121214] rounded-2xl p-4 space-y-3 border border-white/5">
         {messages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.username === username ? 'items-end' : 'items-start'}`}>

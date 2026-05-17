@@ -4,9 +4,10 @@ const db = require('../database/db');
 
 router.get('/group', async (req, res) => {
   try {
+    const room = req.query.room || 'group';
     const result = await db.query(
       'SELECT * FROM messages WHERE room = $1 ORDER BY created_at ASC LIMIT 100',
-      ['group']
+      [room]
     );
     res.json(result.rows);
   } catch (err) {

@@ -6,14 +6,12 @@ const { Server } = require('socket.io');
 const cookie = require('./routes/cookie');
 const auth = require('./routes/auth');
 const messages = require('./routes/messages');
+const family = require('./routes/family');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+  cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
 app.use(cors());
@@ -22,6 +20,7 @@ app.use(express.json());
 app.use('/api', cookie);
 app.use('/api/auth', auth);
 app.use('/api/messages', messages);
+app.use('/api/family', family);
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);

@@ -1,18 +1,25 @@
 const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 const initializeDatabase = async () => {
   try {
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS families (
+        family_id TEXT PRIMARY KEY,
+        owner TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        family_id TEXT REFERENCES families(family_id),
+        created_at TIMESTAMP DEFAULT NOW()
       );
     `);
     await pool.query(`
