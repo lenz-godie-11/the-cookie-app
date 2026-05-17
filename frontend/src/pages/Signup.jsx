@@ -1,9 +1,21 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Lock, Eye, EyeOff, UserPlus, CheckCircle } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, UserPlus, CheckCircle, X } from 'lucide-react';
 import axios from 'axios';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://the-cookie-app.onrender.com') + '/api';
+
+const validatePassword = (password) => {
+  const rules = [
+    { test: password.length >= 8, message: 'Angalau herufi 8' },
+    { test: /[A-Z]/.test(password), message: 'Herufi kubwa moja (A-Z)' },
+    { test: /[a-z]/.test(password), message: 'Herufi ndogo moja (a-z)' },
+    { test: /[0-9]/.test(password), message: 'Nambari moja (0-9)' },
+    { test: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password), message: 'Symbol moja (!@#$%^&*)' },
+    { test: !/\s/.test(password), message: 'Bila spaces' },
+  ];
+  return rules;
+};
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -11,9 +23,17 @@ export default function Signup() {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const rules = validatePassword(formData.password);
+  const isPasswordValid = rules.every(r => r.test);
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setTouched(true);
+
+    if (!isPasswordValid) return;
+
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/register`, formData);
       if (response.data.success) {
@@ -58,14 +78,35 @@ export default function Signup() {
               placeholder="Password" 
               autoComplete="new-password"
               value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              onChange={(e) => { setFormData({...formData, password: e.target.value}); setTouched(true); }}
               className="w-full pl-12 pr-12 py-3.5 bg-[#1a1a1c] border border-white/10 rounded-xl text-white outline-none focus:ring-1 focus:ring-[#3b5d8f]" 
             />
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          <button className="w-full bg-[#3b5d8f] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all mt-4">
+
+          {touched && formData.password.length > 0 && (
+            <div className="bg-[#1a1a1c] border border-white/10 rounded-xl p-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold mb-2">Password lazima iwe na:</p>
+              {rules.map((rule, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  {rule.test 
+                    ? <CheckCircle size={14} className="text-green-400" />
+                    : <X size={14} className="text-red-400" />
+                  }
+                  <span className={`text-xs ${rule.test ? 'text-green-400' : 'text-red-400'}`}>
+                    {rule.message}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button 
+            disabled={touched && !isPasswordValid}
+            className="w-full bg-[#3b5d8f] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all mt-4 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <UserPlus size={20} /> Sign Up
           </button>
         </form>

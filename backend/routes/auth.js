@@ -9,7 +9,13 @@ router.post('/register', async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ success: false, message: "Missing credentials" });
   }
-  try {
+
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[^\s]{8,}$/;
+if (!passwordRegex.test(password)) {
+  return res.status(400).json({ success: false, message: "Password haikidhi masharti" });
+}
+
+try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const family_id = crypto.randomUUID();
 
