@@ -25,9 +25,12 @@ const initializeDatabase = async () => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        description TEXT DEFAULT '',
         count INTEGER DEFAULT 0,
-        image_url TEXT
+        image_url TEXT,
+        family_id TEXT REFERENCES families(family_id),
+        created_at TIMESTAMP DEFAULT NOW()
       );
     `);
     await pool.query(`
@@ -39,14 +42,6 @@ const initializeDatabase = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    const items = ['cookies', 'teabags', 'coffee', 'mint ratomilk', 'salt'];
-    for (const item of items) {
-      await pool.query(`
-        INSERT INTO products (name, count) 
-        VALUES ($1, 10) 
-        ON CONFLICT (name) DO NOTHING;
-      `, [item]);
-    }
     console.log("PostgreSQL Tables initialized.");
   } catch (err) {
     console.error("Database initialization failed:", err);
