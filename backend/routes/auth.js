@@ -12,7 +12,7 @@ router.post('/register', async (req, res) => {
 
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[^\s]{8,}$/;
 if (!passwordRegex.test(password)) {
-  return res.status(400).json({ success: false, message: "Password haikidhi masharti" });
+  return res.status(400).json({ success: false, message: "Password error" });
 }
 
 try {
@@ -81,4 +81,4 @@ router.get('/family-members/:family_id', async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = router;  return res.status(400).json({ success: false, message: "Password haikidhi masharti" });
