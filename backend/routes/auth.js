@@ -81,4 +81,4 @@ router.get('/family-members/:family_id', async (req, res) => {
   }
 });
 
-module.exports = router;  return res.status(400).json({ success: false, message: "Password haikidhi masharti" });
+module.exports = router;  return res.status(400).json({ success: false, message: "Password error" });
