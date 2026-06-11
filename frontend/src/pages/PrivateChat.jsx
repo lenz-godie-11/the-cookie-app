@@ -20,15 +20,17 @@ export default function PrivateChat({ username, familyId }) {
 
   useEffect(() => {
     if (!familyId) return;
-    axios.get(`${API_BASE_URL}/auth/family-members/${familyId}`)
-      .then(res => setMembers(res.data));
+    axios.get(`${API_BASE_URL}/auth/family-members/${familyId}?username=${username}`)
+      .then(res => setMembers(res.data))
+      .catch(err => console.error('Failed to fetch members:', err));
   }, [familyId]);
 
   useEffect(() => {
     if (!chatStarted) return;
     socket.emit('join_room', room);
-    axios.get(`${API_BASE_URL}/messages/private/${username}/${recipient}`)
-      .then(res => setMessages(res.data));
+    axios.get(`${API_BASE_URL}/messages/private/${username}/${recipient}?requester=${username}`)
+      .then(res => setMessages(res.data))
+      .catch(err => console.error('Failed to fetch messages:', err));
 
     socket.on('receive_message', (data) => {
       setMessages(prev => [...prev, data]);

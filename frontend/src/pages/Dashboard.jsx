@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [restockCount, setRestockCount] = useState({});
 
   const familyId = localStorage.getItem('family_id');
   const username = localStorage.getItem('username');
@@ -21,7 +22,7 @@ export default function Dashboard() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/products/${familyId}`);
+      const response = await axios.get(`${API_BASE_URL}/products/${familyId}?username=${username}`);
       setProducts(response.data);
     } catch (err) {
       setError('Failed to fetch products');
@@ -53,6 +54,7 @@ export default function Dashboard() {
       formData.append('description', form.description);
       formData.append('count', form.count);
       formData.append('family_id', familyId);
+      formData.append('username', username);
       if (image) formData.append('image', image);
       await axios.post(`${API_BASE_URL}/products/add`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -63,7 +65,7 @@ export default function Dashboard() {
       setPreview(null);
       fetchProducts();
     } catch (err) {
-      setError('Failed to add product');
+      setError(err.response?.data?.message || 'Failed to add product');
     } finally {
       setLoading(false);
     }
@@ -71,19 +73,32 @@ export default function Dashboard() {
 
   const handleConsume = async (id) => {
     try {
-      await axios.post(`${API_BASE_URL}/products/consume/${id}`);
+      await axios.post(`${API_BASE_URL}/products/consume/${id}`, {
+        username,
+        family_id: familyId
+      });
       setProducts(products.map(p => p.id === id ? { ...p, count: Math.max(0, p.count - 1) } : p));
     } catch (err) {
-      alert(err.response?.data?.message || 'Item update failed');
+      alert(err.response?.data?.message || 'Item out of stock!');
     }
   };
 
   const handleRestock = async (id) => {
+    const count = restockCount[id] || 10;
+    if (isNaN(count) || count <= 0) {
+      alert('Please enter a valid restock count');
+      return;
+    }
     try {
-      await axios.post(`${API_BASE_URL}/products/restock/${id}`);
-      setProducts(products.map(p => p.id === id ? { ...p, count: 10 } : p));
+      await axios.post(`${API_BASE_URL}/products/restock/${id}`, {
+        username,
+        family_id: familyId,
+        count
+      });
+      setProducts(products.map(p => p.id === id ? { ...p, count } : p));
+      setRestockCount(prev => ({ ...prev, [id]: 10 }));
     } catch (err) {
-      alert('Failed to restock item');
+      alert(err.response?.data?.message || 'Failed to restock item');
     }
   };
 
@@ -132,26 +147,35 @@ export default function Dashboard() {
               )}
               <p className="text-slate-400 text-sm mb-4">Stock Level:
                 <span className={`ml-2 font-bold ${product.count === 0 ? 'text-red-500' : 'text-green-400'}`}>
-                  {product.count} / 10
+                  {product.count}
                 </span>
               </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleConsume(product.id)}
-                  disabled={product.count === 0}
-                  className="flex-1 bg-[#3b5d8f] text-white py-2 rounded-xl text-sm font-bold disabled:opacity-40"
-                >
-                  Consume
-                </button>
-                {isAdmin && (
+
+              {isAdmin && (
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={restockCount[product.id] || 10}
+                    onChange={(e) => setRestockCount(prev => ({ ...prev, [product.id]: parseInt(e.target.value) }))}
+                    className="w-20 bg-[#1a1a1c] border border-white/10 rounded-xl px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#3b5d8f]"
+                  />
                   <button
                     onClick={() => handleRestock(product.id)}
-                    className="bg-[#1a1a1c] border border-white/10 text-slate-300 px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#252528]"
+                    className="flex-1 bg-[#1a1a1c] border border-white/10 text-slate-300 px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#252528]"
                   >
                     Restock
                   </button>
-                )}
-              </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => handleConsume(product.id)}
+                disabled={product.count === 0}
+                className="w-full bg-[#3b5d8f] text-white py-2 rounded-xl text-sm font-bold disabled:opacity-40"
+              >
+                Consume
+              </button>
             </div>
           </div>
         ))}
@@ -172,20 +196,21 @@ export default function Dashboard() {
                 placeholder="Product name"
                 required
                 value={form.name}
-                onChange={(e) => setForm({...form, name: e.target.value})}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-[#3b5d8f]"
               />
               <textarea
                 placeholder="Description (optional)"
                 value={form.description}
-                onChange={(e) => setForm({...form, description: e.target.value})}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
                 className="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-[#3b5d8f] resize-none h-24"
               />
               <input
                 type="number"
                 placeholder="Initial stock"
+                min="1"
                 value={form.count}
-                onChange={(e) => setForm({...form, count: e.target.value})}
+                onChange={(e) => setForm({ ...form, count: e.target.value })}
                 className="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-[#3b5d8f]"
               />
               <div className="border border-white/10 rounded-xl p-4 bg-[#1a1a1c]">

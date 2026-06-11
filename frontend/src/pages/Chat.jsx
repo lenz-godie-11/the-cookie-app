@@ -17,7 +17,7 @@ export default function Chat({ username, familyId }) {
   useEffect(() => {
     if (!familyId) return;
     socket.emit('join_room', room);
-    axios.get(`${API_BASE_URL}/messages/group?room=${room}`)
+    axios.get(`${API_BASE_URL}/messages/messages?room=${room}`)
       .then(res => setMessages(res.data));
 
     socket.on('receive_message', (data) => {
