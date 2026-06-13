@@ -43,6 +43,18 @@ const initializeDatabase = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
+     await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        family_id TEXT REFERENCES families(family_id),
+        username TEXT NOT NULL,
+        message TEXT NOT NULL,
+        type TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     console.log("PostgreSQL Tables initialized.");
   } catch (err) {
     console.error("Database initialization failed:", err);

@@ -55,6 +55,20 @@ router.post('/join/:family_id', async (req, res) => {
       [trimmedUsername, hashedPassword, family_id]
     );
 
+    const io = req.app.get('io');
+    const members = await db.query(
+      'SELECT username FROM users WHERE family_id = $1 AND username != $2',
+      [family_id, trimmedUsername]
+    );
+
+    for (const member of members.rows) {
+      const notif = await db.query(
+        'INSERT INTO notifications (family_id, username, message, type) VALUES ($1, $2, $3, $4) RETURNING *',
+        [family_id, member.username, `${trimmedUsername} joined your family!`, 'member']
+      );
+      io.to(`user_${member.username}`).emit('new_notification', notif.rows[0]);
+    }
+
     res.status(201).json({ success: true, message: "Joined family!", family_id });
   } catch (err) {
     if (err.code === '23505') {
