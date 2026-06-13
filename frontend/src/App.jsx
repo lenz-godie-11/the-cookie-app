@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
 import PrivateChat from './pages/PrivateChat';
 import JoinFamily from './pages/JoinFamily';
+import Notifications from './pages/Notifications';
+import Settings from './pages/Settings';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 
@@ -13,7 +15,10 @@ function App() {
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
   const [familyId, setFamilyId] = useState(localStorage.getItem('family_id') || '');
   const location = useLocation();
-  const hideNav = location.pathname === '/login' || location.pathname === '/signup' || location.pathname.startsWith('/family/join');
+
+  const hideNav = location.pathname === '/login' || 
+    location.pathname === '/signup' || 
+    location.pathname.startsWith('/family/join');
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0a0a0b]">
@@ -27,6 +32,8 @@ function App() {
           <Route path="/chat" element={<Chat username={username} familyId={familyId} />} />
           <Route path="/private-chat" element={<PrivateChat username={username} familyId={familyId} />} />
           <Route path="/family/join/:family_id" element={<JoinFamily />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/settings" element={<Settings setUsername={setUsername} setFamilyId={setFamilyId} />} />
         </Routes>
       </main>
       <Footer />
