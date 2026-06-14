@@ -19,7 +19,6 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!username || !family_id) return;
-
     const fetchUnread = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/notifications/${username}?family_id=${family_id}`);
@@ -29,15 +28,11 @@ export default function Navbar() {
         console.error('Failed to fetch notifications:', err);
       }
     };
-
     fetchUnread();
-
     socket.emit('join_user_room', username);
-
     socket.on('new_notification', () => {
       setUnreadCount(prev => prev + 1);
     });
-
     return () => socket.off('new_notification');
   }, [username]);
 
@@ -52,7 +47,7 @@ export default function Navbar() {
     <nav className="w-full bg-[#121214] border-b border-white/5 px-4 py-3 flex items-center justify-between relative">
       <span className="text-[#3b5d8f] font-bold text-lg tracking-wide">kuki store</span>
 
-      <div className="hidden md:flex items-center gap-2">
+      <div className="hidden lg:flex items-center gap-2">
         <Link to="/dashboard" className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all">
           <LayoutDashboard size={16} /> Dashboard
         </Link>
@@ -78,12 +73,12 @@ export default function Navbar() {
         </button>
       </div>
 
-      <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-slate-400 hover:text-white p-2">
+      <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden text-slate-400 hover:text-white p-2">
         {menuOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
 
       {menuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-[#121214] border-b border-white/5 flex flex-col px-4 py-3 gap-1 z-50 md:hidden">
+        <div className="absolute top-full left-0 right-0 bg-[#121214] border-b border-white/5 flex flex-col px-4 py-3 gap-1 z-50 lg:hidden">
           <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium">
             <LayoutDashboard size={16} /> Dashboard
           </Link>
