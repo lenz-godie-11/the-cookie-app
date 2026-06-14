@@ -103,13 +103,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto min-h-[80vh] text-white overflow-y-auto">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto text-white">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-[#3b5d8f]">Cookie App Inventory</h1>
+        <h1 className="text-xl md:text-3xl font-bold text-[#3b5d8f]">Cookie App Inventory</h1>
         {isAdmin && (
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-[#3b5d8f] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#2e4a72]"
+            className="flex items-center gap-2 bg-[#3b5d8f] text-white px-3 py-2 rounded-xl text-xs md:text-sm font-bold hover:bg-[#2e4a72] whitespace-nowrap"
           >
             <Plus size={16} /> Add Product
           </button>

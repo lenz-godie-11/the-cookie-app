@@ -32,7 +32,7 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen bg-[#0a0a0b]">
       {!hideNav && <Navbar />}
-      <main className="flex-grow overflow-y-auto">
+      <main className="flex-grow overflow-y-auto h-0">
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/signup" element={<Signup />} />
