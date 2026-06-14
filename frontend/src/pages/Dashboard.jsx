@@ -103,7 +103,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto min-h-[80vh] text-white">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto min-h-[80vh] text-white overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-[#3b5d8f]">Cookie App Inventory</h1>
         {isAdmin && (

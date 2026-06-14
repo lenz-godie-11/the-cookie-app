@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
-import { Send } from 'lucide-react';
+import { Send, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://the-cookie-app.onrender.com') + '/api';
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://the-cookie-app.onrender.com';
@@ -9,6 +10,7 @@ const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://the-cookie-app.onren
 const socket = io(SOCKET_URL);
 
 export default function Chat({ username, familyId }) {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
@@ -40,8 +42,16 @@ export default function Chat({ username, familyId }) {
   };
 
   return (
-    <div className="flex flex-col h-[80vh] max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-bold text-[#3b5d8f] mb-4">Family Chat</h2>
+    <div className="flex flex-col h-[90vh] max-w-2xl mx-auto p-4">
+      <div className="flex items-center gap-3 mb-4">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all"
+        >
+          <Home size={16} /> Home
+        </button>
+        <h2 className="text-2xl font-bold text-[#3b5d8f]">Family Chat</h2>
+      </div>
       <div className="flex-1 overflow-y-auto bg-[#121214] rounded-2xl p-4 space-y-3 border border-white/5">
         {messages.map((msg, i) => (
           <div key={i} className={`flex flex-col ${msg.username === username ? 'items-end' : 'items-start'}`}>
