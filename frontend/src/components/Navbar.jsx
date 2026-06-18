@@ -19,6 +19,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!username || !family_id) return;
+    
     const fetchUnread = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/notifications/${username}?family_id=${family_id}`);
@@ -28,20 +29,20 @@ export default function Navbar() {
         console.error('Failed to fetch notifications:', err);
       }
     };
+    
     fetchUnread();
     socket.emit('join_user_room', username);
-    socket.on('new_notification', () => {
+    
+    const handleNotification = () => {
       setUnreadCount(prev => prev + 1);
-    });
-    return () => socket.off('new_notification');
-  }, [username]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('username');
-    localStorage.removeItem('family_id');
-    localStorage.removeItem('is_admin');
-    navigate('/login');
-  };
+    };
+    
+    socket.on('new_notification', handleNotification);
+    
+    return () => {
+      socket.off('new_notification', handleNotification);
+    };
+  }, [username, family_id]); 
 
   return (
     <nav className="w-full bg-[#121214] border-b border-white/5 px-4 py-3 flex items-center justify-between relative">
