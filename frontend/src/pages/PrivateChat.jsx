@@ -121,7 +121,7 @@ export default function PrivateChat({ username, familyId, theme = "dark" }) {
 
   return (
     <div
-      className={`flex flex-col h-[90vh] max-w-2xl mx-auto p-4 transition-colors duration-200`}
+      className={`flex flex-col h-full max-w-2xl mx-auto p-4 transition-colors duration-200`}
     >
       <div className="flex items-center gap-3 mb-4">
         <button
@@ -146,7 +146,7 @@ export default function PrivateChat({ username, familyId, theme = "dark" }) {
       </div>
 
       <div
-        className={`flex-1 overflow-y-auto rounded-2xl p-4 space-y-3 border transition-all ${isDark ? "bg-[#121214] border-white/5" : "bg-white border-slate-200 shadow-inner"}`}
+        className={`flex-1 min-h-0 overflow-y-auto rounded-2xl p-4 space-y-3 border transition-all ${isDark ? "bg-[#121214] border-white/5" : "bg-white border-slate-200 shadow-inner"}`}
       >
         {messages.map((msg, i) => (
           <div

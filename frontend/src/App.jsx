@@ -28,7 +28,6 @@ function App() {
     localStorage.getItem("family_id") || "",
   );
 
-  // Strictly track state value. If anything else is saved or empty, force default to 'dark'
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("theme");
     return saved === "light" ? "light" : "dark";
@@ -50,11 +49,11 @@ function App() {
 
   return (
     <div
-      className={`flex flex-col min-h-screen w-full overflow-x-hidden transition-colors duration-200 ${isDark ? "bg-[#0a0a0b]" : "bg-slate-50"}`}
+      className={`flex flex-col h-screen w-full overflow-x-hidden transition-colors duration-200 ${isDark ? "bg-[#0a0a0b]" : "bg-slate-50"}`}
     >
       {!hideNav && <Navbar theme={theme} setTheme={handleThemeChange} />}
 
-      <main className="flex-1 w-full mx-auto">
+      <main className="flex-1 w-full mx-auto overflow-y-auto">
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
 
