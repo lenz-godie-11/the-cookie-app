@@ -54,7 +54,7 @@ export default function Chat({ username, familyId }) {
         >
           <Home size={16} /> Home
         </button>
-        <h2 className="text-2xl font-bold text-[#3b5d8f]">Family Chat</h2>
+        <h2 className="text-2xl font-bold text-[#3b5d8f]">FamilyChats</h2>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto bg-[#121214] rounded-2xl p-4 space-y-3 border border-white/5">
         {messages.map((msg, i) => (
