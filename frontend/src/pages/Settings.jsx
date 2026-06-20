@@ -96,7 +96,8 @@ export default function Settings({
     if (!accountForm.currentPassword || !accountForm.newPassword) {
       return showToast("Please fill in both password fields", "error");
     }
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])[^\s]{8,}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])[^\s]{8,}$/;
     if (!passwordRegex.test(accountForm.newPassword)) {
       return showToast("New password does not meet requirements", "error");
     }
