@@ -17,15 +17,15 @@ const API_BASE_URL =
 
 const validatePassword = (password) => {
   const rules = [
-    { test: password.length >= 8, message: "Angalau herufi 8" },
-    { test: /[A-Z]/.test(password), message: "Herufi kubwa moja (A-Z)" },
-    { test: /[a-z]/.test(password), message: "Herufi ndogo moja (a-z)" },
-    { test: /[0-9]/.test(password), message: "Nambari moja (0-9)" },
+    { test: password.length >= 8, message: "Atleast 8 characters" },
+    { test: /[A-Z]/.test(password), message: "Uppercase Letter (A-Z)" },
+    { test: /[a-z]/.test(password), message: "Lowercase Letter (a-z)" },
+    { test: /[0-9]/.test(password), message: "Number (0-9)" },
     {
       test: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
       message: "Symbol moja (!@#$%^&*)",
     },
-    { test: !/\s/.test(password), message: "Bila spaces" },
+    { test: !/\s/.test(password), message: "No spaces Allowed" },
   ];
   return rules;
 };

@@ -82,7 +82,7 @@ export default function PrivateChat({ username, familyId, theme = "dark" }) {
             >
               <Home size={16} /> Home
             </button>
-            <h2 className="text-2xl font-bold text-[#3b5d8f]">Private Chat</h2>
+            <h2 className="text-2xl font-bold text-[#3b5d8f]">TextMe</h2>
           </div>
           <p
             className={`text-sm mb-4 ${isDark ? "text-slate-400" : "text-slate-500"}`}
@@ -131,7 +131,7 @@ export default function PrivateChat({ username, familyId, theme = "dark" }) {
           <ArrowLeft size={20} />
         </button>
         <h2 className="text-2xl font-bold text-[#3b5d8f]">
-          Chat na {recipient}
+          TextMe {recipient}
         </h2>
         <button
           onClick={() => navigate("/dashboard")}

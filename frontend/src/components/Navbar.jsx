@@ -66,7 +66,7 @@ export default function Navbar() {
   return (
     <nav className="w-full bg-[#121214] border-b border-white/5 px-4 py-3 flex items-center justify-between relative">
       <span className="text-[#3b5d8f] font-bold text-lg tracking-wide">
-        kuki store
+        MyStore
       </span>
 
       <div className="hidden lg:flex items-center gap-2">
@@ -80,13 +80,13 @@ export default function Navbar() {
           to="/chat"
           className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all"
         >
-          <MessageSquare size={16} /> Group Chat
+          <MessageSquare size={16} /> FamilyChat
         </Link>
         <Link
           to="/private-chat"
           className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all"
         >
-          <Lock size={16} /> Chat
+          <Lock size={16} /> TextMe
         </Link>
         <Link
           to="/notifications"
@@ -134,21 +134,21 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
             className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium"
           >
-            <MessageSquare size={16} /> Group Chat
+            <MessageSquare size={16} /> FamilyChat
           </Link>
           <Link
             to="/private-chat"
             onClick={() => setMenuOpen(false)}
             className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium"
           >
-            <Lock size={16} /> Chat
+            <Lock size={16} /> TextMe
           </Link>
           <Link
             to="/notifications"
             onClick={() => setMenuOpen(false)}
             className="relative flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium"
           >
-            <Bell size={16} /> Notifications
+            <Bell size={16} /> MyNotifier
             {unreadCount > 0 && (
               <span className="bg-[#3b5d8f] text-white text-xs font-bold px-2 py-0.5 rounded-full ml-auto">
                 {unreadCount > 9 ? "9+" : unreadCount}

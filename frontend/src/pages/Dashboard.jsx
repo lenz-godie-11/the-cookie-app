@@ -1,31 +1,35 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Copy, CheckCheck, Plus, X } from 'lucide-react';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Copy, CheckCheck, Plus, X } from "lucide-react";
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://the-cookie-app.onrender.com') + '/api';
+const API_BASE_URL =
+  (import.meta.env.VITE_API_URL || "https://the-cookie-app.onrender.com") +
+  "/api";
 
 export default function Dashboard() {
   const [products, setProducts] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', count: 10 });
+  const [form, setForm] = useState({ name: "", description: "", count: 10 });
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [restockCount, setRestockCount] = useState({});
 
-  const familyId = localStorage.getItem('family_id');
-  const username = localStorage.getItem('username');
-  const isAdmin = localStorage.getItem('is_admin') === 'true';
+  const familyId = localStorage.getItem("family_id");
+  const username = localStorage.getItem("username");
+  const isAdmin = localStorage.getItem("is_admin") === "true";
   const inviteLink = `${window.location.origin}/family/join/${familyId}`;
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/products/${familyId}?username=${username}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/products/${familyId}?username=${username}`,
+      );
       setProducts(response.data);
     } catch (err) {
-      setError('Failed to fetch products');
+      setError("Failed to fetch products");
     }
   };
 
@@ -50,22 +54,22 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('name', form.name);
-      formData.append('description', form.description);
-      formData.append('count', form.count);
-      formData.append('family_id', familyId);
-      formData.append('username', username);
-      if (image) formData.append('image', image);
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("count", form.count);
+      formData.append("family_id", familyId);
+      formData.append("username", username);
+      if (image) formData.append("image", image);
       await axios.post(`${API_BASE_URL}/products/add`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { "Content-Type": "multipart/form-data" },
       });
       setShowModal(false);
-      setForm({ name: '', description: '', count: 10 });
+      setForm({ name: "", description: "", count: 10 });
       setImage(null);
       setPreview(null);
       fetchProducts();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add product');
+      setError(err.response?.data?.message || "Failed to add product");
     } finally {
       setLoading(false);
     }
@@ -75,37 +79,43 @@ export default function Dashboard() {
     try {
       await axios.post(`${API_BASE_URL}/products/consume/${id}`, {
         username,
-        family_id: familyId
+        family_id: familyId,
       });
-      setProducts(products.map(p => p.id === id ? { ...p, count: Math.max(0, p.count - 1) } : p));
+      setProducts(
+        products.map((p) =>
+          p.id === id ? { ...p, count: Math.max(0, p.count - 1) } : p,
+        ),
+      );
     } catch (err) {
-      alert(err.response?.data?.message || 'Item out of stock!');
+      alert(err.response?.data?.message || "Item out of stock!");
     }
   };
 
   const handleRestock = async (id) => {
     const count = restockCount[id] || 10;
     if (isNaN(count) || count <= 0) {
-      alert('Please enter a valid restock count');
+      alert("Please enter a valid restock count");
       return;
     }
     try {
       await axios.post(`${API_BASE_URL}/products/restock/${id}`, {
         username,
         family_id: familyId,
-        count
+        count,
       });
-      setProducts(products.map(p => p.id === id ? { ...p, count } : p));
-      setRestockCount(prev => ({ ...prev, [id]: 10 }));
+      setProducts(products.map((p) => (p.id === id ? { ...p, count } : p)));
+      setRestockCount((prev) => ({ ...prev, [id]: 10 }));
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to restock item');
+      alert(err.response?.data?.message || "Failed to restock item");
     }
   };
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto text-white">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl md:text-3xl font-bold text-[#3b5d8f]">Cookie App Inventory</h1>
+        <h1 className="text-xl md:text-3xl font-bold text-[#3b5d8f]">
+          MyStore
+        </h1>
         {isAdmin && (
           <button
             onClick={() => setShowModal(true)}
@@ -119,11 +129,24 @@ export default function Dashboard() {
       {isAdmin && (
         <div className="bg-[#121214] border border-white/5 rounded-2xl p-4 mb-8 flex items-center justify-between gap-4">
           <div className="overflow-hidden">
-            <p className="text-slate-400 text-xs mb-1">Your Family Invite Link</p>
-            <p className="text-slate-300 text-sm truncate max-w-xs">{inviteLink}</p>
+            <p className="text-slate-400 text-xs mb-1">ShareTheFamilyLink</p>
+            <p className="text-slate-300 text-sm truncate max-w-xs">
+              {inviteLink}
+            </p>
           </div>
-          <button onClick={handleCopy} className="flex items-center gap-2 bg-[#3b5d8f] text-white px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
-            {copied ? <><CheckCheck size={16} /> Copied!</> : <><Copy size={16} /> Copy Link</>}
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-2 bg-[#3b5d8f] text-white px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap"
+          >
+            {copied ? (
+              <>
+                <CheckCheck size={16} /> Copied!
+              </>
+            ) : (
+              <>
+                <Copy size={16} /> Copy Link
+              </>
+            )}
           </button>
         </div>
       )}
@@ -131,22 +154,36 @@ export default function Dashboard() {
       {error && <p className="text-red-500 font-bold mb-4">{error}</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map(product => (
-          <div key={product.id} className="bg-[#121214] border border-white/5 rounded-2xl shadow-xl overflow-hidden">
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className="bg-[#121214] border border-white/5 rounded-2xl shadow-xl overflow-hidden"
+          >
             {product.image_url ? (
-              <img src={product.image_url} alt={product.name} className="w-full h-48 object-cover" />
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-48 object-cover"
+              />
             ) : (
               <div className="w-full h-48 bg-[#1a1a1c] flex items-center justify-center text-slate-600 text-sm">
                 No Image
               </div>
             )}
             <div className="p-5">
-              <h3 className="text-xl font-semibold capitalize mb-1">{product.name}</h3>
+              <h3 className="text-xl font-semibold capitalize mb-1">
+                {product.name}
+              </h3>
               {product.description && (
-                <p className="text-slate-500 text-xs mb-3">{product.description}</p>
+                <p className="text-slate-500 text-xs mb-3">
+                  {product.description}
+                </p>
               )}
-              <p className="text-slate-400 text-sm mb-4">Stock Level:
-                <span className={`ml-2 font-bold ${product.count === 0 ? 'text-red-500' : 'text-green-400'}`}>
+              <p className="text-slate-400 text-sm mb-4">
+                Stock Level:
+                <span
+                  className={`ml-2 font-bold ${product.count === 0 ? "text-red-500" : "text-green-400"}`}
+                >
                   {product.count}
                 </span>
               </p>
@@ -157,7 +194,12 @@ export default function Dashboard() {
                     type="number"
                     min="1"
                     value={restockCount[product.id] || 10}
-                    onChange={(e) => setRestockCount(prev => ({ ...prev, [product.id]: parseInt(e.target.value) }))}
+                    onChange={(e) =>
+                      setRestockCount((prev) => ({
+                        ...prev,
+                        [product.id]: parseInt(e.target.value),
+                      }))
+                    }
                     className="w-20 bg-[#1a1a1c] border border-white/10 rounded-xl px-3 py-2 text-white text-sm outline-none focus:ring-1 focus:ring-[#3b5d8f]"
                   />
                   <button
@@ -186,7 +228,10 @@ export default function Dashboard() {
           <div className="bg-[#121214] border border-white/5 rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">Add New Product</h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -202,7 +247,9 @@ export default function Dashboard() {
               <textarea
                 placeholder="Description (optional)"
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
                 className="w-full bg-[#1a1a1c] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-[#3b5d8f] resize-none h-24"
               />
               <input
@@ -215,12 +262,21 @@ export default function Dashboard() {
               />
               <div className="border border-white/10 rounded-xl p-4 bg-[#1a1a1c]">
                 {preview && (
-                  <img src={preview} alt="preview" className="w-full h-40 object-cover rounded-xl mb-3" />
+                  <img
+                    src={preview}
+                    alt="preview"
+                    className="w-full h-40 object-cover rounded-xl mb-3"
+                  />
                 )}
                 <label className="cursor-pointer flex items-center gap-2 text-slate-400 text-sm hover:text-white">
                   <Plus size={16} />
-                  {preview ? 'Change Image' : 'Upload Image'}
-                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  {preview ? "Change Image" : "Upload Image"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
                 </label>
               </div>
               <button
@@ -228,7 +284,7 @@ export default function Dashboard() {
                 disabled={loading}
                 className="w-full bg-[#3b5d8f] text-white py-3 rounded-xl font-bold disabled:opacity-50"
               >
-                {loading ? 'Adding...' : 'Add Product'}
+                {loading ? "Adding..." : "Add Product"}
               </button>
             </form>
           </div>

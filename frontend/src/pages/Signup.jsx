@@ -155,7 +155,7 @@ export default function Signup({ theme = "dark" }) {
               <p
                 className={`text-xs font-bold mb-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}
               >
-                Password lazima iwe na:
+                Password prerequistics:
               </p>
               {rules.map((rule, i) => (
                 <div key={i} className="flex items-center gap-2">
