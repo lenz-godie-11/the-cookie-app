@@ -88,7 +88,6 @@ export default function Notifications({ theme = "dark" }) {
       console.error("Failed to fetch notifications:", err);
     } finally {
       setLoading(false);
-      setLoading(false);
     }
   };
 
