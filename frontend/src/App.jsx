@@ -27,32 +27,58 @@ function App() {
   const [familyId, setFamilyId] = useState(
     localStorage.getItem("family_id") || "",
   );
+
+  // Strictly track state value. If anything else is saved or empty, force default to 'dark'
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    return saved === "light" ? "light" : "dark";
+  });
+
   const location = useLocation();
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
 
   const hideNav =
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
     location.pathname.startsWith("/family/join");
 
+  const isDark = theme === "dark";
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0a0b] w-full overflow-x-hidden">
-      {!hideNav && <Navbar />}
+    <div
+      className={`flex flex-col min-h-screen w-full overflow-x-hidden transition-colors duration-200 ${isDark ? "bg-[#0a0a0b]" : "bg-slate-50"}`}
+    >
+      {!hideNav && <Navbar theme={theme} setTheme={handleThemeChange} />}
+
       <main className="flex-1 w-full mx-auto">
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/signup" element={<Signup />} />
+
+          <Route path="/signup" element={<Signup theme={theme} />} />
           <Route
             path="/login"
             element={
-              <Login setUsername={setUsername} setFamilyId={setFamilyId} />
+              <Login
+                theme={theme}
+                setUsername={setUsername}
+                setFamilyId={setFamilyId}
+              />
             }
           />
-          <Route path="/family/join/:family_id" element={<JoinFamily />} />
+          <Route
+            path="/family/join/:family_id"
+            element={<JoinFamily theme={theme} />}
+          />
+
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Dashboard theme={theme} />
               </ProtectedRoute>
             }
           />
@@ -60,7 +86,7 @@ function App() {
             path="/chat"
             element={
               <ProtectedRoute>
-                <Chat username={username} familyId={familyId} />
+                <Chat username={username} familyId={familyId} theme={theme} />
               </ProtectedRoute>
             }
           />
@@ -68,7 +94,11 @@ function App() {
             path="/private-chat"
             element={
               <ProtectedRoute>
-                <PrivateChat username={username} familyId={familyId} />
+                <PrivateChat
+                  username={username}
+                  familyId={familyId}
+                  theme={theme}
+                />
               </ProtectedRoute>
             }
           />
@@ -76,7 +106,7 @@ function App() {
             path="/notifications"
             element={
               <ProtectedRoute>
-                <Notifications />
+                <Notifications theme={theme} />
               </ProtectedRoute>
             }
           />
@@ -84,13 +114,18 @@ function App() {
             path="/settings"
             element={
               <ProtectedRoute>
-                <Settings setUsername={setUsername} setFamilyId={setFamilyId} />
+                <Settings
+                  theme={theme}
+                  setTheme={handleThemeChange}
+                  setUsername={setUsername}
+                  setFamilyId={setFamilyId}
+                />
               </ProtectedRoute>
             }
           />
         </Routes>
       </main>
-      <Footer />
+      <Footer theme={theme} />
     </div>
   );
 }

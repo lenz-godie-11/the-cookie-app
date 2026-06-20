@@ -1,11 +1,16 @@
 @import "tailwindcss";
 
+
+@variant light (&:where(.light, .light *));
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html, body, #root {
+  /* Default to dark mode colors, but update them if .light class is present */
   background-color: #0a0a0b;
+  color: #ffffff;
   margin: 0;
   padding: 0;
   height: 100%;
@@ -17,4 +22,10 @@ html, body, #root {
   right: 0;
   bottom: 0;
   touch-action: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.light, html.light body, html.light #root {
+  background-color: #f8fafc;
+  color: #0f172a;
 }
