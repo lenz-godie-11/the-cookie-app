@@ -11,6 +11,8 @@ import Settings from "./pages/Settings";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 
+import Discover from "./components/Discover";
+
 const ProtectedRoute = ({ children }) => {
   const username = localStorage.getItem("username");
   const family_id = localStorage.getItem("family_id");
@@ -81,6 +83,19 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/discover"
+            element={
+              <ProtectedRoute>
+                <Discover
+                  username={username}
+                  familyId={familyId}
+                  theme={theme}
+                />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/chat"
             element={
