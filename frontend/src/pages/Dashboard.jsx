@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Copy, CheckCheck, Plus, X } from "lucide-react";
-
+import { Copy, CheckCheck, Plus, X, Trash2 } from "lucide-react";
 const API_BASE_URL =
   (import.meta.env.VITE_API_URL || "https://the-cookie-app.onrender.com") +
   "/api";
-
 export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState("");
@@ -16,12 +14,10 @@ export default function Dashboard() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [restockCount, setRestockCount] = useState({});
-
   const familyId = localStorage.getItem("family_id");
   const username = localStorage.getItem("username");
   const isAdmin = localStorage.getItem("is_admin") === "true";
   const inviteLink = `${window.location.origin}/family/join/${familyId}`;
-
   const fetchProducts = async () => {
     try {
       const response = await axios.get(
@@ -32,23 +28,19 @@ export default function Dashboard() {
       setError("Failed to fetch products");
     }
   };
-
   useEffect(() => {
     if (familyId) fetchProducts();
   }, []);
-
   const handleCopy = () => {
     navigator.clipboard.writeText(inviteLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
-
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -74,7 +66,6 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-
   const handleConsume = async (id) => {
     try {
       await axios.post(`${API_BASE_URL}/products/consume/${id}`, {
@@ -90,7 +81,6 @@ export default function Dashboard() {
       alert(err.response?.data?.message || "Item out of stock!");
     }
   };
-
   const handleRestock = async (id) => {
     const count = restockCount[id] || 10;
     if (isNaN(count) || count <= 0) {
@@ -109,7 +99,17 @@ export default function Dashboard() {
       alert(err.response?.data?.message || "Failed to restock item");
     }
   };
-
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm("Delete this product? This cannot be undone.")) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/products/${id}`, {
+        data: { username, family_id: familyId },
+      });
+      setProducts(products.filter((p) => p.id !== id));
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete product");
+    }
+  };
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto text-white">
       <div className="flex items-center justify-between mb-6">
@@ -125,7 +125,6 @@ export default function Dashboard() {
           </button>
         )}
       </div>
-
       {isAdmin && (
         <div className="bg-[#121214] border border-white/5 rounded-2xl p-4 mb-8 flex items-center justify-between gap-4">
           <div className="overflow-hidden">
@@ -150,26 +149,35 @@ export default function Dashboard() {
           </button>
         </div>
       )}
-
       {error && <p className="text-red-500 font-bold mb-4">{error}</p>}
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <div
             key={product.id}
             className="bg-[#121214] border border-white/5 rounded-2xl shadow-xl overflow-hidden"
           >
-            {product.image_url ? (
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-              />
-            ) : (
-              <div className="w-full h-48 bg-[#1a1a1c] flex items-center justify-center text-slate-600 text-sm">
-                No Image
-              </div>
-            )}
+            <div className="relative">
+              {product.image_url ? (
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                />
+              ) : (
+                <div className="w-full h-48 bg-[#1a1a1c] flex items-center justify-center text-slate-600 text-sm">
+                  No Image
+                </div>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => handleDeleteProduct(product.id)}
+                  className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white p-2 rounded-xl transition-colors"
+                  title="Delete product"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
             <div className="p-5">
               <h3 className="text-xl font-semibold capitalize mb-1">
                 {product.name}
@@ -187,7 +195,6 @@ export default function Dashboard() {
                   {product.count}
                 </span>
               </p>
-
               {isAdmin && (
                 <div className="flex gap-2 mb-2">
                   <input
@@ -210,7 +217,6 @@ export default function Dashboard() {
                   </button>
                 </div>
               )}
-
               <button
                 onClick={() => handleConsume(product.id)}
                 disabled={product.count === 0}
@@ -222,7 +228,6 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
-
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-[#121214] border border-white/5 rounded-2xl p-6 w-full max-w-md">
