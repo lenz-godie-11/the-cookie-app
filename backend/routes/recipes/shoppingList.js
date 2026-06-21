@@ -29,34 +29,46 @@ router.post("/generate", async (req, res) => {
     const aggregated = {};
 
     for (const { recipe_id, desired_servings } of recipes) {
+      // Safety: Match type configuration dynamically
+      const cleanRecipeId = isNaN(recipe_id) ? recipe_id : parseInt(recipe_id);
+
       const recipeResult = await db.query(
         "SELECT * FROM recipes WHERE id = $1 AND family_id = $2",
-        [recipe_id, family_id],
+        [cleanRecipeId, family_id],
       );
+
       // if not this family recipe skip
       if (recipeResult.rows.length === 0) continue;
 
       const recipe = recipeResult.rows[0];
-      const ratio = (desired_servings || recipe.servings) / recipe.servings;
+      const baseServings = parseFloat(recipe.servings) || 4;
+      const ratio =
+        (parseFloat(desired_servings) || baseServings) / baseServings;
 
       const ingredientsResult = await db.query(
-        "SELECT * FROM recipe_ingredients WHERE recipe_id = $1",
-        [recipe_id],
+        "SELECT name, amount, unit FROM recipe_ingredients WHERE recipe_id = $1",
+        [cleanRecipeId],
       );
 
       for (const ing of ingredientsResult.rows) {
+        if (!ing.name) continue;
         const key = ing.name.trim().toLowerCase();
-        const scaledAmount = parseFloat(ing.amount) * ratio;
+        const scaledAmount = (parseFloat(ing.amount) || 0) * ratio;
 
         if (aggregated[key]) {
           aggregated[key].amount += scaledAmount;
-          aggregated[key].fromRecipes.push(recipe.name);
+          if (
+            recipe.name &&
+            !aggregated[key].fromRecipes.includes(recipe.name)
+          ) {
+            aggregated[key].fromRecipes.push(recipe.name);
+          }
         } else {
           aggregated[key] = {
             name: ing.name,
             amount: scaledAmount,
-            unit: ing.unit,
-            fromRecipes: [recipe.name],
+            unit: ing.unit || "units",
+            fromRecipes: recipe.name ? [recipe.name] : [],
           };
         }
       }
@@ -71,10 +83,15 @@ router.post("/generate", async (req, res) => {
       productsResult.rows.map((p) => p.name.trim().toLowerCase()),
     );
 
-    // keep only what's missing from stock
+    // keep only what's missing from stock (filters against saruji / charwe)
     const missingItems = Object.values(aggregated).filter(
       (item) => !inStock.has(item.name.trim().toLowerCase()),
     );
+
+    // clear old entries for this family before adding a new shopping list
+    await db.query("DELETE FROM shopping_list_items WHERE family_id = $1", [
+      family_id,
+    ]);
 
     // persist the generated list
     const savedItems = [];
@@ -89,6 +106,7 @@ router.post("/generate", async (req, res) => {
 
     res.json({ success: true, shoppingList: savedItems });
   } catch (err) {
+    console.error("SHOPPING LIST GENERATE ERROR:", err); // Now you will see the exact column crash on Render!
     res.status(500).json({ success: false, message: err.message });
   }
 });
