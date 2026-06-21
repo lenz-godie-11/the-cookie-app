@@ -18,26 +18,23 @@ router.post("/generate", async (req, res) => {
 
   try {
     const memberCheck = await db.query(
-      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
-      [username, family_id],
+      "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
+      [username.trim(), family_id.trim()],
     );
     if (memberCheck.rows.length === 0) {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // aggregate ingredients across the selected recipes
     const aggregated = {};
 
     for (const { recipe_id, desired_servings } of recipes) {
-      // Safety: Match type configuration dynamically
       const cleanRecipeId = isNaN(recipe_id) ? recipe_id : parseInt(recipe_id);
 
       const recipeResult = await db.query(
-        "SELECT * FROM recipes WHERE id = $1 AND family_id = $2",
-        [cleanRecipeId, family_id],
+        "SELECT * FROM recipes WHERE id::text = $1::text AND family_id::text = $2::text",
+        [cleanRecipeId, family_id.trim()],
       );
 
-      // if not this family recipe skip
       if (recipeResult.rows.length === 0) continue;
 
       const recipe = recipeResult.rows[0];
@@ -46,7 +43,7 @@ router.post("/generate", async (req, res) => {
         (parseFloat(desired_servings) || baseServings) / baseServings;
 
       const ingredientsResult = await db.query(
-        "SELECT name, amount, unit FROM recipe_ingredients WHERE recipe_id = $1",
+        "SELECT name, amount, unit FROM recipe_ingredients WHERE recipe_id::text = $1::text",
         [cleanRecipeId],
       );
 
@@ -74,39 +71,36 @@ router.post("/generate", async (req, res) => {
       }
     }
 
-    // pull the family's REAL current stock — live query
     const productsResult = await db.query(
-      "SELECT name FROM products WHERE family_id = $1",
-      [family_id],
+      "SELECT name FROM products WHERE family_id::text = $1::text",
+      [family_id.trim()],
     );
     const inStock = new Set(
       productsResult.rows.map((p) => p.name.trim().toLowerCase()),
     );
 
-    // keep only what's missing from stock (filters against saruji / charwe)
     const missingItems = Object.values(aggregated).filter(
       (item) => !inStock.has(item.name.trim().toLowerCase()),
     );
 
-    // clear old entries for this family before adding a new shopping list
-    await db.query("DELETE FROM shopping_list_items WHERE family_id = $1", [
-      family_id,
-    ]);
+    await db.query(
+      "DELETE FROM shopping_list_items WHERE family_id::text = $1::text",
+      [family_id.trim()],
+    );
 
-    // persist the generated list
     const savedItems = [];
     for (const item of missingItems) {
       const insertResult = await db.query(
         `INSERT INTO shopping_list_items (family_id, ingredient_name, amount, unit)
          VALUES ($1, $2, $3, $4) RETURNING *`,
-        [family_id, item.name, item.amount, item.unit],
+        [family_id.trim(), item.name, item.amount, item.unit],
       );
       savedItems.push(insertResult.rows[0]);
     }
 
     res.json({ success: true, shoppingList: savedItems });
   } catch (err) {
-    console.error("SHOPPING LIST GENERATE ERROR:", err); // Now you will see the exact column crash on Render!
+    console.error("SHOPPING LIST GENERATE ERROR:", err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
