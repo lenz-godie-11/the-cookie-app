@@ -8,6 +8,7 @@ import {
   X,
   Bell,
   Settings,
+  ChefHat,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
@@ -68,7 +69,6 @@ export default function Navbar() {
       <span className="text-[#3b5d8f] font-bold text-lg tracking-wide">
         MyStore
       </span>
-
       <div className="hidden lg:flex items-center gap-2">
         <Link
           to="/dashboard"
@@ -88,6 +88,13 @@ export default function Navbar() {
         >
           <Lock size={16} /> TextMe
         </Link>
+        <Link
+          to="/discover"
+          className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all"
+        >
+          <ChefHat size={16} /> Discover
+        </Link>
+
         <Link
           to="/notifications"
           className="relative flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all"
@@ -143,6 +150,15 @@ export default function Navbar() {
           >
             <Lock size={16} /> TextMe
           </Link>
+
+          <Link
+            to="/discover"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium"
+          >
+            <ChefHat size={16} /> Discover
+          </Link>
+
           <Link
             to="/notifications"
             onClick={() => setMenuOpen(false)}
