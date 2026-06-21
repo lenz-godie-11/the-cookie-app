@@ -26,12 +26,14 @@ router.post("/save", async (req, res) => {
 
     const savedEntries = [];
     for (const item of mealPlan) {
+      const recipeIdInput = item.recipe_id;
+
       const result = await db.query(
         `INSERT INTO meal_plans (family_id, recipe_id, day_of_week, meal_type, desired_servings, added_by)
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
         [
           family_id,
-          item.recipe_id,
+          recipeIdInput,
           item.day_of_week,
           item.meal_type,
           item.desired_servings || 4,
@@ -50,6 +52,7 @@ router.post("/save", async (req, res) => {
     });
   } catch (err) {
     await db.query("ROLLBACK");
+    console.error("MEALPLAN SAVE CRASH DETAILS:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -76,7 +79,7 @@ router.get("/:family_id", async (req, res) => {
     const result = await db.query(
       `SELECT mp.*, r.name as recipe_name, r.image_url, r.servings as base_servings
        FROM meal_plans mp
-       JOIN recipes r ON mp.recipe_id = r.id
+       LEFT JOIN recipes r ON mp.recipe_id = r.id
        WHERE mp.family_id = $1
        ORDER BY 
          CASE mp.day_of_week
@@ -92,6 +95,7 @@ router.get("/:family_id", async (req, res) => {
 
     res.json({ success: true, mealPlan: result.rows });
   } catch (err) {
+    console.error("MEALPLAN GET FETCH CRASH DETAILS:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
