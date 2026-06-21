@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../database/db");
 const { upload } = require("../../config/cloudinary");
-
+const axios = require("axios");
 router.post("/add", upload.single("image"), async (req, res) => {
   try {
     const {
@@ -23,7 +23,6 @@ router.post("/add", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Force parameters to cleanly evaluate as text strings using ::text casting
     const memberCheck = await db.query(
       "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
       [username.trim(), family_id.trim()],
@@ -66,7 +65,6 @@ router.post("/add", upload.single("image"), async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
 router.get("/:family_id/search/ingredients", async (req, res) => {
   try {
     const { family_id } = req.params;
@@ -82,7 +80,6 @@ router.get("/:family_id/search/ingredients", async (req, res) => {
       "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
       [username.trim(), family_id.trim()],
     );
-
     if (memberCheck.rows.length === 0) {
       return res.json([]);
     }
@@ -96,7 +93,7 @@ router.get("/:family_id/search/ingredients", async (req, res) => {
       [family_id],
     );
 
-    const scored = [];
+    let scored = [];
     for (const recipe of recipesResult.rows) {
       const ingredientsResult = await db.query(
         "SELECT name FROM recipe_ingredients WHERE recipe_id::text = $1::text",
@@ -113,14 +110,81 @@ router.get("/:family_id/search/ingredients", async (req, res) => {
         );
         if (found) score++;
       }
-
       if (score > 0) scored.push({ ...recipe, matchScore: score });
+    }
+
+    if (scored.length === 0) {
+      console.log(
+        `Neon DB haina mapishi. Tunavuta kutoka TheMealDB kwa kutumia kiungo cha kwanza...`,
+      );
+
+      const keyword = searchedIngredients[0];
+
+      const apiResponse = await axios.get(
+        `https://www.themealdb.com/api/json/v1/1/filter.php?i=${keyword}`,
+      );
+
+      if (apiResponse.data && apiResponse.data.meals) {
+        const mealsToProcess = apiResponse.data.meals.slice(0, 3);
+
+        for (const meal of mealsToProcess) {
+          const detailsResponse = await axios.get(
+            `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`,
+          );
+
+          if (detailsResponse.data && detailsResponse.data.meals) {
+            const fullMeal = detailsResponse.data.meals[0];
+
+            const mealInstructions = fullMeal.strInstructions
+              ? fullMeal.strInstructions
+                  .split("\r\n")
+                  .filter((line) => line.trim().length > 0)
+              : ["Cook thoroughly according to taste."];
+
+            const savedRecipeResult = await db.query(
+              `INSERT INTO recipes (family_id, name, description, image_url, diet_tags, servings, instructions, created_by)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+              [
+                family_id,
+                fullMeal.strMeal,
+                `Delicious ${fullMeal.strMeal} imported automatically via TheMealDB.`,
+                fullMeal.strMealThumb,
+                [fullMeal.strCategory || "General"],
+                4,
+                mealInstructions,
+                "TheMealDB System",
+              ],
+            );
+
+            const newRecipe = savedRecipeResult.rows[0];
+
+            for (let k = 1; k <= 20; k++) {
+              const ingName = fullMeal[`strIngredient${k}`];
+              const ingMeasure = fullMeal[`strMeasure${k}`];
+
+              if (ingName && ingName.trim().length > 0) {
+                await db.query(
+                  "INSERT INTO recipe_ingredients (recipe_id, name, amount, unit) VALUES ($1, $2, $3, $4)",
+                  [
+                    newRecipe.id,
+                    ingName.trim().toLowerCase(),
+                    parseFloat(ingMeasure) || 1,
+                    ingMeasure.trim() || "unit",
+                  ],
+                );
+              }
+            }
+
+            scored.push({ ...newRecipe, matchScore: 1 });
+          }
+        }
+      }
     }
 
     scored.sort((a, b) => b.matchScore - a.matchScore);
     res.json(scored);
   } catch (err) {
-    console.error("CRITICAL SEARCH RECIPE ERROR:", err.message);
+    console.error("CRITICAL AUTOMATIC SEARCH RECIPE ERROR:", err.message);
     res
       .status(500)
       .json({ error: err.message, tracking: "Search route crash" });
@@ -165,7 +229,6 @@ router.get("/:family_id", async (req, res) => {
       .json({ error: err.message, tracking: "Recipe route crash" });
   }
 });
-
 router.get("/:family_id/:id", async (req, res) => {
   try {
     const { family_id, id } = req.params;
