@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../database/db");
 const { upload } = require("../../config/cloudinary");
-
 router.post("/add", upload.single("image"), async (req, res) => {
   try {
     const {
@@ -62,6 +61,59 @@ router.post("/add", upload.single("image"), async (req, res) => {
     res.status(201).json({ success: true, message: "Recipe added!", recipe });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+router.get("/:family_id/search/ingredients", async (req, res) => {
+  try {
+    const { family_id } = req.params;
+    const { username, ingredients } = req.query;
+    if (!username || !ingredients) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing username or ingredients" });
+    }
+
+    const memberCheck = await db.query(
+      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
+      [username, family_id],
+    );
+    if (memberCheck.rows.length === 0) {
+      return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
+    const searchedIngredients = ingredients
+      .split(",")
+      .map((i) => i.trim().toLowerCase());
+    const recipesResult = await db.query(
+      "SELECT * FROM recipes WHERE family_id = $1",
+      [family_id],
+    );
+
+    const scored = [];
+    for (const recipe of recipesResult.rows) {
+      const ingredientsResult = await db.query(
+        "SELECT name FROM recipe_ingredients WHERE recipe_id = $1",
+        [recipe.id],
+      );
+      const recipeNames = ingredientsResult.rows.map((i) =>
+        i.name.trim().toLowerCase(),
+      );
+
+      let score = 0;
+      for (const searched of searchedIngredients) {
+        const found = recipeNames.some(
+          (name) => name.includes(searched) || searched.includes(name),
+        );
+        if (found) score++;
+      }
+
+      if (score > 0) scored.push({ ...recipe, matchScore: score });
+    }
+
+    scored.sort((a, b) => b.matchScore - a.matchScore);
+    res.json(scored);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -175,60 +227,6 @@ router.delete("/:id", async (req, res) => {
     res.json({ success: true, message: "Recipe deleted" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-router.get("/:family_id/search/ingredients", async (req, res) => {
-  try {
-    const { family_id } = req.params;
-    const { username, ingredients } = req.query;
-    if (!username || !ingredients) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing username or ingredients" });
-    }
-
-    const memberCheck = await db.query(
-      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
-      [username, family_id],
-    );
-    if (memberCheck.rows.length === 0) {
-      return res.status(403).json({ success: false, message: "Access denied" });
-    }
-
-    const searchedIngredients = ingredients
-      .split(",")
-      .map((i) => i.trim().toLowerCase());
-    const recipesResult = await db.query(
-      "SELECT * FROM recipes WHERE family_id = $1",
-      [family_id],
-    );
-
-    const scored = [];
-    for (const recipe of recipesResult.rows) {
-      const ingredientsResult = await db.query(
-        "SELECT name FROM recipe_ingredients WHERE recipe_id = $1",
-        [recipe.id],
-      );
-      const recipeNames = ingredientsResult.rows.map((i) =>
-        i.name.trim().toLowerCase(),
-      );
-
-      let score = 0;
-      for (const searched of searchedIngredients) {
-        const found = recipeNames.some(
-          (name) => name.includes(searched) || searched.includes(name),
-        );
-        if (found) score++;
-      }
-
-      if (score > 0) scored.push({ ...recipe, matchScore: score });
-    }
-
-    scored.sort((a, b) => b.matchScore - a.matchScore);
-    res.json(scored);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 
