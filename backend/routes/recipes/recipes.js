@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../../database/db");
 const { upload } = require("../../config/cloudinary");
+
 router.post("/add", upload.single("image"), async (req, res) => {
   try {
     const {
@@ -22,9 +23,10 @@ router.post("/add", upload.single("image"), async (req, res) => {
       });
     }
 
+    // Force parameters to cleanly evaluate as text strings using ::text casting
     const memberCheck = await db.query(
-      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
-      [username, family_id],
+      "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
+      [username.trim(), family_id.trim()],
     );
     if (memberCheck.rows.length === 0) {
       return res.status(403).json({ success: false, message: "Access denied" });
@@ -60,13 +62,16 @@ router.post("/add", upload.single("image"), async (req, res) => {
 
     res.status(201).json({ success: true, message: "Recipe added!", recipe });
   } catch (err) {
+    console.error("CRITICAL RECIPE ADD ERROR:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.get("/:family_id/search/ingredients", async (req, res) => {
   try {
     const { family_id } = req.params;
     const { username, ingredients } = req.query;
+
     if (!username || !ingredients) {
       return res
         .status(400)
@@ -74,25 +79,27 @@ router.get("/:family_id/search/ingredients", async (req, res) => {
     }
 
     const memberCheck = await db.query(
-      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
-      [username, family_id],
+      "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
+      [username.trim(), family_id.trim()],
     );
+
     if (memberCheck.rows.length === 0) {
-      return res.status(403).json({ success: false, message: "Access denied" });
+      return res.json([]);
     }
 
     const searchedIngredients = ingredients
       .split(",")
       .map((i) => i.trim().toLowerCase());
+
     const recipesResult = await db.query(
-      "SELECT * FROM recipes WHERE family_id = $1",
+      "SELECT * FROM recipes WHERE family_id::text = $1::text",
       [family_id],
     );
 
     const scored = [];
     for (const recipe of recipesResult.rows) {
       const ingredientsResult = await db.query(
-        "SELECT name FROM recipe_ingredients WHERE recipe_id = $1",
+        "SELECT name FROM recipe_ingredients WHERE recipe_id::text = $1::text",
         [recipe.id],
       );
       const recipeNames = ingredientsResult.rows.map((i) =>
@@ -113,7 +120,10 @@ router.get("/:family_id/search/ingredients", async (req, res) => {
     scored.sort((a, b) => b.matchScore - a.matchScore);
     res.json(scored);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("CRITICAL SEARCH RECIPE ERROR:", err.message);
+    res
+      .status(500)
+      .json({ error: err.message, tracking: "Search route crash" });
   }
 });
 
@@ -121,6 +131,7 @@ router.get("/:family_id", async (req, res) => {
   try {
     const { family_id } = req.params;
     const { username, diet } = req.query;
+
     if (!username) {
       return res
         .status(400)
@@ -128,26 +139,30 @@ router.get("/:family_id", async (req, res) => {
     }
 
     const memberCheck = await db.query(
-      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
-      [username, family_id],
+      "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
+      [username.trim(), family_id.trim()],
     );
+
     if (memberCheck.rows.length === 0) {
-      return res.status(403).json({ success: false, message: "Access denied" });
+      return res.json([]);
     }
 
     const result = diet
       ? await db.query(
-          "SELECT * FROM recipes WHERE family_id = $1 AND $2 = ANY(diet_tags) ORDER BY created_at DESC",
+          "SELECT * FROM recipes WHERE family_id::text = $1::text AND $2 = ANY(diet_tags) ORDER BY created_at DESC",
           [family_id, diet],
         )
       : await db.query(
-          "SELECT * FROM recipes WHERE family_id = $1 ORDER BY created_at DESC",
+          "SELECT * FROM recipes WHERE family_id::text = $1::text ORDER BY created_at DESC",
           [family_id],
         );
 
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("CRITICAL RECIPE GET ERROR:", err.message);
+    res
+      .status(500)
+      .json({ error: err.message, tracking: "Recipe route crash" });
   }
 });
 
@@ -162,15 +177,15 @@ router.get("/:family_id/:id", async (req, res) => {
     }
 
     const memberCheck = await db.query(
-      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
-      [username, family_id],
+      "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
+      [username.trim(), family_id.trim()],
     );
     if (memberCheck.rows.length === 0) {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
     const recipeResult = await db.query(
-      "SELECT * FROM recipes WHERE id = $1 AND family_id = $2",
+      "SELECT * FROM recipes WHERE id::text = $1::text AND family_id::text = $2::text",
       [id, family_id],
     );
     if (recipeResult.rows.length === 0) {
@@ -180,24 +195,20 @@ router.get("/:family_id/:id", async (req, res) => {
     }
 
     const ingredientsResult = await db.query(
-      "SELECT * FROM recipe_ingredients WHERE recipe_id = $1 ORDER BY sort_order ASC",
+      "SELECT * FROM recipe_ingredients WHERE recipe_id::text = $1::text ORDER BY id ASC",
       [id],
     );
 
     res.json({ ...recipeResult.rows[0], ingredients: ingredientsResult.rows });
   } catch (err) {
+    console.error("CRITICAL SINGLE RECIPE FETCH ERROR:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
-
 router.delete("/:id", async (req, res) => {
-  const recipeId = parseInt(req.params.id);
-  if (isNaN(recipeId)) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid recipe ID" });
-  }
+  const { id } = req.params;
   const { username, family_id } = req.body;
+
   if (!username || !family_id) {
     return res
       .status(400)
@@ -206,16 +217,16 @@ router.delete("/:id", async (req, res) => {
 
   try {
     const memberCheck = await db.query(
-      "SELECT id FROM users WHERE username = $1 AND family_id = $2",
-      [username, family_id],
+      "SELECT id FROM users WHERE username::text = $1::text AND family_id::text = $2::text",
+      [username.trim(), family_id.trim()],
     );
     if (memberCheck.rows.length === 0) {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
 
     const ownerCheck = await db.query(
-      "SELECT id FROM recipes WHERE id = $1 AND family_id = $2",
-      [recipeId, family_id],
+      "SELECT id FROM recipes WHERE id::text = $1::text AND family_id::text = $2::text",
+      [id, family_id],
     );
     if (ownerCheck.rows.length === 0) {
       return res
@@ -223,9 +234,10 @@ router.delete("/:id", async (req, res) => {
         .json({ success: false, message: "Recipe not found" });
     }
 
-    await db.query("DELETE FROM recipes WHERE id = $1", [recipeId]);
+    await db.query("DELETE FROM recipes WHERE id::text = $1::text", [id]);
     res.json({ success: true, message: "Recipe deleted" });
   } catch (err) {
+    console.error("CRITICAL RECIPE DELETE ERROR:", err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
