@@ -10,8 +10,8 @@ import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
-
 import Discover from "./components/Discover";
+import LandingPage from "./pages/LandingPage";
 
 const ProtectedRoute = ({ children }) => {
   const username = localStorage.getItem("username");
@@ -42,7 +42,9 @@ function App() {
     localStorage.setItem("theme", newTheme);
   };
 
+  // Added location.pathname === "/" to hide the main app navbar on the landing page
   const hideNav =
+    location.pathname === "/" ||
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
     location.pathname.startsWith("/family/join");
@@ -57,7 +59,8 @@ function App() {
 
       <main className="flex-1 w-full mx-auto overflow-y-auto">
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+          {/* Landing page is now the default root view */}
+          <Route path="/" element={<LandingPage theme={theme} />} />
 
           <Route path="/signup" element={<Signup theme={theme} />} />
           <Route
