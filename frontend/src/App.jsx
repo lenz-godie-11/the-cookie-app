@@ -8,7 +8,6 @@ import PrivateChat from "./pages/PrivateChat";
 import JoinFamily from "./pages/JoinFamily";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
-import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import Discover from "./components/Discover";
 import LandingPage from "./pages/LandingPage";
@@ -135,7 +134,6 @@ function App() {
           />
         </Routes>
       </main>
-      {!hideNav && <Footer theme={theme} />}
     </div>
   );
 }
