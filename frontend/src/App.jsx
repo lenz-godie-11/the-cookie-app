@@ -29,7 +29,6 @@ function App() {
   const [familyId, setFamilyId] = useState(
     localStorage.getItem("family_id") || "",
   );
-
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("theme");
     return saved === "light" ? "light" : "dark";
@@ -42,7 +41,6 @@ function App() {
     localStorage.setItem("theme", newTheme);
   };
 
-  // Added location.pathname === "/" to hide the main app navbar on the landing page
   const hideNav =
     location.pathname === "/" ||
     location.pathname === "/login" ||
@@ -56,12 +54,9 @@ function App() {
       className={`flex flex-col h-screen w-full overflow-x-hidden transition-colors duration-200 ${isDark ? "bg-[#0a0a0b]" : "bg-slate-50"}`}
     >
       {!hideNav && <Navbar theme={theme} setTheme={handleThemeChange} />}
-
       <main className="flex-1 w-full mx-auto overflow-y-auto">
         <Routes>
-          {/* Landing page is now the default root view */}
           <Route path="/" element={<LandingPage theme={theme} />} />
-
           <Route path="/signup" element={<Signup theme={theme} />} />
           <Route
             path="/login"
@@ -77,7 +72,6 @@ function App() {
             path="/family/join/:family_id"
             element={<JoinFamily theme={theme} />}
           />
-
           <Route
             path="/dashboard"
             element={
@@ -98,7 +92,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/chat"
             element={
@@ -142,7 +135,7 @@ function App() {
           />
         </Routes>
       </main>
-      <Footer theme={theme} />
+      {!hideNav && <Footer theme={theme} />}
     </div>
   );
 }
