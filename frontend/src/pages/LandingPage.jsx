@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const translations = {
-  en: { signup: "Explore the App →" },
-  sw: { signup: "Gundua App →" },
+  en: { signup: "Explore in →" },
+  sw: { signup: "tembelea ndani→" },
 };
 
 export default function LandingPage() {
@@ -45,9 +45,7 @@ export default function LandingPage() {
 
       <div className="absolute bottom-0 left-0 right-0 z-10 px-6 pb-16 flex flex-col items-center gap-3 text-center">
         <span className="text-white/60 text-xs uppercase tracking-widest font-semibold">
-          {lang === "en"
-            ? "Family Inventory Management"
-            : "Usimamizi wa Mahitaji ya Familia"}
+          <h1>{lang === "en" ? "cookie store" : " "}</h1>
         </span>
 
         <h1 className="text-white text-4xl md:text-6xl font-black leading-tight drop-shadow-xl max-w-2xl">
@@ -76,7 +74,7 @@ export default function LandingPage() {
           onClick={() => navigate("/signup")}
           className="mt-3 bg-white text-black font-bold px-10 py-3.5 rounded-full text-base shadow-2xl hover:scale-105 hover:bg-yellow-300 transition-all duration-200"
         >
-          {lang === "en" ? "Explore the App →" : "Gundua App →"}
+          {lang === "en" ? "Explore in →" : "tembelea ndani →"}
         </button>
 
         <p className="text-white/40 text-xs mt-1">
