@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 import Navbar from "./components/Navbar";
 import Discover from "./components/Discover";
 import LandingPage from "./pages/LandingPage";
+import About from "./pages/About";
 
 const ProtectedRoute = ({ children }) => {
   const username = localStorage.getItem("username");
@@ -71,6 +72,9 @@ function App() {
             path="/family/join/:family_id"
             element={<JoinFamily theme={theme} />}
           />
+
+          <Route path="/about" element={<About theme={theme} />} />
+
           <Route
             path="/dashboard"
             element={
