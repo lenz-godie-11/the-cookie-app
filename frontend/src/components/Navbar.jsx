@@ -9,6 +9,7 @@ import {
   Bell,
   Settings,
   ChefHat,
+  Info,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
@@ -69,6 +70,8 @@ export default function Navbar() {
       <span className="text-[#3b5d8f] font-bold text-lg tracking-wide">
         MyStore
       </span>
+
+      {/* 1. DESKTOP VIEW (Vioo Vikubwa) */}
       <div className="hidden lg:flex items-center gap-2">
         <Link
           to="/dashboard"
@@ -93,6 +96,14 @@ export default function Navbar() {
           className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all"
         >
           <ChefHat size={16} /> Discover
+        </Link>
+
+        {/* About Link kwa Desktop (Ipo hapa) */}
+        <Link
+          to="/about"
+          className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium transition-all"
+        >
+          <Info size={16} /> About
         </Link>
 
         <Link
@@ -127,6 +138,7 @@ export default function Navbar() {
         {menuOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
 
+      {/* 2. MOBILE VIEW (Kwenye Simu - Hamburger Menu) */}
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 bg-[#121214] border-b border-white/5 flex flex-col px-4 py-3 gap-1 z-50 lg:hidden">
           <Link
@@ -157,6 +169,15 @@ export default function Navbar() {
             className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium"
           >
             <ChefHat size={16} /> Discover
+          </Link>
+
+          {/* About Link kwa Simu (Ipo hapa pia) */}
+          <Link
+            to="/about"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#1a1a1c] text-sm font-medium"
+          >
+            <Info size={16} /> About
           </Link>
 
           <Link
